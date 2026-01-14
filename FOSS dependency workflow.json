@@ -1,0 +1,1222 @@
+{
+  "name": "FOSS dependency workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "Please_upload_the_PDF_of_the_x_ray_report",
+        "options": {
+          "joinPages": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        336,
+        544
+      ],
+      "id": "f8e2c5c8-899e-43b2-a925-b973e0029b67",
+      "name": "PDF to JSON",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json.text.map(item =>({\n  json:{value: item}\n}))\nreturn result;\n\n// return [{\n//   json:{value:$input.first().json.text[0] }\n// }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        544
+      ],
+      "id": "8e509e53-d06c-4b28-ab79-8e962eb30afa",
+      "name": "Split by pages",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "allpages",
+          "mode": "list",
+          "cachedResultName": "allpages"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "data": "={{ $json.value }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "pagenum",
+              "displayName": "pagenum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        752,
+        544
+      ],
+      "id": "f4a2020d-8a45-4505-956a-eb59dbf433f8",
+      "name": "store all pages",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "4sxUiHYuukcYxhCB",
+          "name": "Postgres account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "deleteTable",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "pagetemp",
+          "mode": "list",
+          "cachedResultName": "pagetemp"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        624,
+        1728
+      ],
+      "id": "8b03c701-9342-4515-af77-d58060abc539",
+      "name": "Delete Page temp data1",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "4sxUiHYuukcYxhCB",
+          "name": "Postgres account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "deleteTable",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "allpages",
+          "mode": "list",
+          "cachedResultName": "allpages"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1296,
+        1728
+      ],
+      "id": "ff4e3c59-2d27-46f9-9dda-15df39f2123f",
+      "name": "del allpgs",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "4sxUiHYuukcYxhCB",
+          "name": "Postgres account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "gJ3aX8iVFld4bd3f",
+          "mode": "list",
+          "cachedResultName": "Priority analysis"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1712,
+        544
+      ],
+      "name": "Priority analysis",
+      "id": "c960ffe0-3be7-4c73-a8e3-447747a4f6d8"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "atrisk",
+          "mode": "list",
+          "cachedResultName": "atrisk"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1472,
+        544
+      ],
+      "id": "61948ee1-2baa-4e51-a255-7b846ef892f9",
+      "name": "Get at risk dependencies",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "alwaysOutputData": true,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "4sxUiHYuukcYxhCB",
+          "name": "Postgres account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn []"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        544
+      ],
+      "id": "7f4fae99-9171-49bf-bf01-00d8e6cc18f9",
+      "name": "return empty",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "deleteTable",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "atrisk",
+          "mode": "list",
+          "cachedResultName": "atrisk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1520,
+        1728
+      ],
+      "id": "f94e6b2a-34d0-44eb-b55c-a94ae8c30e8e",
+      "name": "del at risk",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "4sxUiHYuukcYxhCB",
+          "name": "Postgres account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "deleteTable",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "priorityresearch",
+          "mode": "list",
+          "cachedResultName": "priorityresearch"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1744,
+        1728
+      ],
+      "id": "3d00a439-0910-4777-9dbd-b972cc31b3bf",
+      "name": "del priority research",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "4sxUiHYuukcYxhCB",
+          "name": "Postgres account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "let value = $input.first().json.output\nlet match = value.match(/<!DOCTYPE html>[\\s\\S]*?<\\/html>/);\nlet result = match ? match[0] : \"\";\nreturn { json: { result } };\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3408,
+        544
+      ],
+      "id": "a454ab24-b409-487e-8919-856c0d268f56",
+      "name": "format to html code"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "html",
+        "binaryPropertyName": " ",
+        "options": {
+          "fileName": "FOSS dependency analysis.html"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        3872,
+        544
+      ],
+      "id": "c9d561c8-4c36-4e12-9b5e-e9f04d61c996",
+      "name": "Convert to File",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "html": "{{ $json.result }}"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        3664,
+        544
+      ],
+      "id": "cc0cb6b7-3b4d-42d4-9b69-f69e52627da5",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "formTitle": "FOSS dependency research",
+        "formDescription": "Perform detailed analysis of FOSS dependencies used and output a report which details the top 10 priority cases.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Please upload the PDF of the x-ray report",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        96,
+        544
+      ],
+      "id": "2ed24dbe-08b4-4b4c-a9ac-8f18bf2c1939",
+      "name": "On form submission",
+      "webhookId": "a75855c1-43e1-440b-8b3d-111fdef19a49"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4.1",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        768
+      ],
+      "id": "4f59d847-b146-4db8-b665-536908ecb5d2",
+      "name": "Azure OpenAI Chat Model2",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "S7b25DABRkppMkDO",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Pxa6RrV750b3ORD6",
+          "mode": "list",
+          "cachedResultName": "Priority report generation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2256,
+        544
+      ],
+      "name": "Priority report generation",
+      "id": "f67d0181-7620-4cf9-8d51-12f5886e2ba5"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { text: \"\" } },\n  { json: { text: \"\" } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1968,
+        544
+      ],
+      "id": "1edf5822-47c9-4a15-a97d-af52455826d9",
+      "name": "return empty1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ltTy8JxPjNbBcNNI",
+          "mode": "list",
+          "cachedResultName": "Polling priority report generation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2672,
+        544
+      ],
+      "id": "1064877e-c0b7-4ecb-b390-d49b00d4fe2f",
+      "name": "Polling priority report generation"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "priorityreport",
+          "mode": "list",
+          "cachedResultName": "priorityreport"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        3040,
+        768
+      ],
+      "id": "e6e09a2d-bc67-4842-a955-0811dafb2b8b",
+      "name": "Get priority reports",
+      "credentials": {
+        "postgres": {
+          "id": "grH0IsGbSRMUwA16",
+          "name": "Postgres account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "options": {
+          "systemMessage": "You have to recieve the input data and fetch the original page data and the prority reports from from the tool connected. Then you must output a table of 10 dependencies which are the top priority cases. So based on the two reports already generated you have to basically make a final ranking of those 10, don't change any information or update anything, just decide the best ranking using the two reports. So rank them from 1-10, 1 being, the top most priority case. You should output the original details of the dependncies along with the researched details so include the eol/support status details and the vulnerability/security risk details. You must also have an extra column where you explain why you have given it that specific priority. Don't ask me for any details decide for yourself\n\nBe very THOROUGH please this is a very important task for the company so do not mess up as it could have serious repreucssions. \n\nFor the output I will be using a json data to html file converter. So please ouptut html code. When i open the file i should see a nicely formatted table with proper headers and rows and it should include sources for the information found so please output data accordingly."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2976,
+        544
+      ],
+      "id": "2864e224-395b-4331-abf1-65f8143a1457",
+      "name": "Final report generation"
+    },
+    {
+      "parameters": {
+        "operation": "deleteTable",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "priorityreport",
+          "mode": "list",
+          "cachedResultName": "priorityreport"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1968,
+        1728
+      ],
+      "id": "8fb8c659-5943-4054-97a3-ee2e2f833eb8",
+      "name": "del priority reports",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "4sxUiHYuukcYxhCB",
+          "name": "Postgres account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "deleteTable",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "eolsstemp",
+          "mode": "list",
+          "cachedResultName": "eolsstemp"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        400,
+        1728
+      ],
+      "id": "4a7a6ac1-eb91-4308-9a0e-87da2c39780c",
+      "name": "Delete EOL/ss temp data1",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "4sxUiHYuukcYxhCB",
+          "name": "Postgres account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "deleteTable",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "vulsrtemp",
+          "mode": "list",
+          "cachedResultName": "vulsrtemp"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        848,
+        1728
+      ],
+      "id": "34c49ef8-2b93-4155-baf4-846c15b8cb6a",
+      "name": "vul/sr temp del",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "4sxUiHYuukcYxhCB",
+          "name": "Postgres account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "deleteTable",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "pageresearchresults",
+          "mode": "list",
+          "cachedResultName": "pageresearchresults"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        1728
+      ],
+      "id": "c9d39826-8bb7-49f3-ad07-9cba9cdb535f",
+      "name": "pageresearch del",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "4sxUiHYuukcYxhCB",
+          "name": "Postgres account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        176,
+        1728
+      ],
+      "id": "57f76f30-cb7f-40e9-9021-730e893d2660",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "v6jClQlosGJLDEWq",
+          "mode": "list",
+          "cachedResultName": "Polling the research workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        1504
+      ],
+      "name": "Polling the research workflow",
+      "id": "1c02b451-cf84-4e3f-ae30-235021a12cfe",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Convert the file inputted to JSON and split it page by page so the AI agent can process it. ",
+        "height": 368,
+        "width": 368,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        288,
+        336
+      ],
+      "id": "914f5f33-bf11-46a7-88bb-2258b20583d2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Iterating page by page to research the EOL and support status for each dependency. The AI agent then filters out depreciated dependencies.",
+        "height": 368,
+        "width": 352,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        912,
+        336
+      ],
+      "id": "8a76648b-2e29-4ca9-b3ec-86ca9d5b5ada",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Iterating over each depreciated dependency to perform further research about its vulnerabilities and security risks.",
+        "height": 352,
+        "width": 304,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        336
+      ],
+      "id": "6dbb217a-e9fa-4ec1-a0bf-60605f422326",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Uses an AI agent to generate a report of the top 10 most important dependencies which need to be worked on immediately. This runs twice and in parallel\n",
+        "height": 352,
+        "width": 368,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2128,
+        336
+      ],
+      "id": "56d76c6e-ff7c-4f94-9d87-e24e9f498ae5",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Generates a final report of the 10 priority cases by reviewing the two reports generated earlier, this is done to eliminate discrepencies",
+        "height": 352,
+        "width": 368,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2896,
+        336
+      ],
+      "id": "6009b151-9a2b-435c-a14a-17fbe06c3f4b",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "FmbcGLTvqSucq6dD",
+          "mode": "list",
+          "cachedResultName": "Detailed research and narrowing down"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "data": "={{ $json.data }}"
+          },
+          "matchingColumns": [
+            "data"
+          ],
+          "schema": [
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        544
+      ],
+      "name": "Detailed research and narrowing down",
+      "id": "844d29c6-ef6d-4b6d-bbc0-a5bfc89ebcc0"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "allpages",
+          "mode": "list",
+          "cachedResultName": "allpages"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        3200,
+        768
+      ],
+      "id": "867034e5-d7f3-4b98-89d4-fc4e671721da",
+      "name": "Get all pages data",
+      "credentials": {
+        "postgres": {
+          "id": "grH0IsGbSRMUwA16",
+          "name": "Postgres account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Polls the report generation workflow. Proceeds only after both the reports have been produced\n",
+        "height": 352,
+        "width": 256,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2576,
+        336
+      ],
+      "id": "2b4810dd-8a7d-4e1d-9793-dc7181e1be5b",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Formats the report to produce an html file",
+        "height": 352,
+        "width": 640,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3376,
+        336
+      ],
+      "id": "36c9ba91-be38-46a3-88aa-691656919f5a",
+      "name": "Sticky Note6"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "PDF to JSON": {
+      "main": [
+        [
+          {
+            "node": "Split by pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split by pages": {
+      "main": [
+        [
+          {
+            "node": "store all pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "store all pages": {
+      "main": [
+        [
+          {
+            "node": "Detailed research and narrowing down",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Page temp data1": {
+      "main": [
+        [
+          {
+            "node": "vul/sr temp del",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Priority analysis": {
+      "main": [
+        [
+          {
+            "node": "return empty1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get at risk dependencies": {
+      "main": [
+        [
+          {
+            "node": "Priority analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "return empty": {
+      "main": [
+        [
+          {
+            "node": "Get at risk dependencies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "del allpgs": {
+      "main": [
+        [
+          {
+            "node": "del at risk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "del at risk": {
+      "main": [
+        [
+          {
+            "node": "del priority research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format to html code": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        []
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "PDF to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Final report generation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "return empty1": {
+      "main": [
+        [
+          {
+            "node": "Priority report generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Priority report generation": {
+      "main": [
+        [
+          {
+            "node": "Polling priority report generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get priority reports": {
+      "ai_tool": [
+        [
+          {
+            "node": "Final report generation",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Polling priority report generation": {
+      "main": [
+        [
+          {
+            "node": "Final report generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final report generation": {
+      "main": [
+        [
+          {
+            "node": "format to html code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "del priority research": {
+      "main": [
+        [
+          {
+            "node": "del priority reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete EOL/ss temp data1": {
+      "main": [
+        [
+          {
+            "node": "Delete Page temp data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "vul/sr temp del": {
+      "main": [
+        [
+          {
+            "node": "pageresearch del",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "pageresearch del": {
+      "main": [
+        [
+          {
+            "node": "del allpgs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Delete EOL/ss temp data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Polling the research workflow": {
+      "main": [
+        []
+      ]
+    },
+    "Detailed research and narrowing down": {
+      "main": [
+        [
+          {
+            "node": "return empty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all pages data": {
+      "ai_tool": [
+        [
+          {
+            "node": "Final report generation",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ac3788de-8c9a-4d7b-ba53-3c09de30923e",
+  "meta": {
+    "templateId": "self-building-ai-agent",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1675491482a3741097964b06d12c6856f4fd95b46f9fb828dbbe4c8c63362274"
+  },
+  "id": "az18HNyuKdBcWXaj",
+  "tags": []
+}
