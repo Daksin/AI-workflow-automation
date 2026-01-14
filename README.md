@@ -40,4 +40,5 @@ The primary goals of this project are to:
 
 ## Author
 Dakshit Singhal  
-BSc(Hons) Computer Science
+BSc (Hons) Computer Science  
+University of Manchester
